@@ -59,3 +59,11 @@
 .separate-bottom {
     padding-bottom: 20px;
 }
+
+.responsive-editor {
+    width: 100%;
+
+    @include custom(750) {
+        width: 750px;
+    }
+}
