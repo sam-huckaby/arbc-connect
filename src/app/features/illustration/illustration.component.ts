@@ -7,6 +7,7 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '@auth0/auth0-angular';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 import { Illustration } from '../../core/interfaces/illustration.interface';
 
@@ -83,7 +84,16 @@ export class IllustrationComponent implements OnInit {
     this.isLoading$.next(true);
 
     // Send the request to save the form's data
-    this.http.put<Illustration>('/api/illustrations/'+this.illustrationId, this.illustrationForm.value, {responseType: 'json'})
+    this.http.put<Illustration>('/api/illustrations/'+this.illustrationId, this.illustrationForm.value, {responseType: 'json', observe: 'response'})
+    .pipe(
+      map((data: any) => {
+        let illustration = {
+          ...data.body,
+          canManage: data.headers.get('Administer-Illustrations') === 'true'
+        };
+        return illustration;
+      })
+    )
     .subscribe((illustration) => {
       // Once we have the illustration, populate the data management BehaviorSubject
       this.illustration$.next(illustration);
@@ -96,7 +106,38 @@ export class IllustrationComponent implements OnInit {
     }, () => {
       // Stop displaying the loading veil
       this.isLoading$.next(false);
-    })
+    });
+  }
+
+  featureThis(): void {
+    console.log('FEATURED!');
+    // Display loading veil
+    this.isLoading$.next(true);
+
+    // Send the request to save the form's data
+    this.http.post<Illustration>('/api/illustrations/'+this.illustrationId+'/feature', {}, {responseType: 'json', observe: 'response'})
+    .pipe(
+      map((data: any) => {
+        let illustration = {
+          ...data.body,
+          canManage: data.headers.get('Administer-Illustrations') === 'true'
+        };
+        return illustration;
+      })
+    )
+    .subscribe((illustration) => {
+      // Once we have the illustration, populate the data management BehaviorSubject
+      this.illustration$.next(illustration);
+      // Mark the form as pristine again
+      this.illustrationForm.markAsPristine();
+    }, (caught) => {
+      this._snackBar.open(caught.error.info, "Got it", {
+        duration: 5000,
+      });
+    }, () => {
+      // Stop displaying the loading veil
+      this.isLoading$.next(false);
+    });
   }
 
   updateReadingTime() {
@@ -126,7 +167,16 @@ export class IllustrationComponent implements OnInit {
       this.auth.user$.subscribe((user) => {
         // Once we have the user, we can grab the illustration from the DB
         this.userId = user.sub;
-        this.http.get<Illustration>('/api/illustrations/'+params['id'], {responseType: 'json'})
+        this.http.get<Illustration>('/api/illustrations/'+params['id'], {responseType: 'json', observe: 'response'})
+        .pipe(
+          map((data: any) => {
+            let illustration = {
+              ...data.body,
+              canManage: data.headers.get('Administer-Illustrations') === 'true'
+            };
+            return illustration;
+          })
+        )
         .subscribe((illustration) => {
           // Once we have the illustration, populate the data management BehaviorSubject
           this.illustration$.next(illustration);

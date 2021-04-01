@@ -1,12 +1,12 @@
 <div class="padded-page-container">
     <div id="top-container">
-        <h2 class="underlined-header">The 10 most recent illustrations</h2>
+        <h2 class="underlined-header">Featured Illustrations</h2>
     </div>
     <div id="snippet-container">
         <div class="illustration-snippet" *ngFor="let illustration of lastTenIllustrations">
             <div class="created-date children-center">
-                <div class="month-abbr">{{illustration.createdAt | date:'MMM'}}</div>
-                <div class="day-number">{{illustration.createdAt | date:'dd'}}</div>
+                <div class="month-abbr">{{illustration.featured | date:'MMM'}}</div>
+                <div class="day-number">{{illustration.featured | date:'dd'}}</div>
             </div>
             <div class="text-preview">
                 <div class="title-pane">{{illustration.title}}</div>

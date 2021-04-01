@@ -5,6 +5,16 @@
     <div class="loaded-illustration" *ngIf="illustration$ | async as illustration">
         <!-- If the illustration has been loaded already, we want it to remain visible under the loading veil -->
         <div *ngIf="illustration._id">
+            <div class="management-view" *ngIf="illustration.canManage">
+                <!-- I need to figure out a more global way to recognize a management user -->
+                <h3>Manage Illustration</h3>
+                <!-- TODO: Disable this button if the illustration has already been featured previously -->
+                <button class="control-button" id="feature_button" (click)="featureThis()" *ngIf="illustration.featured === null" mat-raised-button>Feature This</button>
+                <span class="featured-label" id="featured_label" *ngIf="illustration.featured !== null">Illustration Featured on {{illustration.featured | date:'longDate'}}</span>
+                <!-- Feature button needs to do two things,
+                    1. Create a clone of this illustration exactly as it is.
+                    2. Set the illustration's featured date to today (for ordering on the home page) -->
+            </div>
             <div class="owner-view" *ngIf="illustration.creator === userId; else visitor">
                 <form class="illustration-form" [formGroup]="illustrationForm" #editIllustrationForm="ngForm">
                     <div class="space-between" id="top_metadata">

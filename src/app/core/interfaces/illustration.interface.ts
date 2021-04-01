@@ -7,4 +7,5 @@ export interface Illustration {
     createdAt: Number;
     updatedAt: Number;
     readTime: Number;
+    canManage: boolean;
   }
