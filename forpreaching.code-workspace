@@ -1,15 +1,19 @@
 {
 	"folders": [
 		{
+			"name": "forpreaching",
 			"path": "."
 		},
 		{
+			"name": "forpreaching-server",
 			"path": "../forpreaching-server"
 		},
 		{
+			"name": "forpreaching-sermons",
 			"path": "../forpreaching-sermons"
 		},
 		{
+			"name": "forpreaching-studies",
 			"path": "../forpreaching-studies"
 		}
 	],
