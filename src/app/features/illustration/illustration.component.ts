@@ -43,6 +43,55 @@ export class IllustrationComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public dialog: MatDialog) { }
 
+  ngOnInit(): void {
+    this.illustrationForm = this.formBuilder.group({
+      title: ['', Validators.required],
+      body: ['', Validators.required]
+    });
+
+    // Display loading veil
+    this.isLoading$.next(true);
+
+    // Anytime the current illustration changes, patch the form to match
+    this.illustration$.subscribe((newValue) => {
+      this.illustrationForm.patchValue(newValue);
+      // A quick calculation using an average reading time of 125 WPM
+      this.readTime = Math.ceil(((this.illustrationForm.value.body.split(' ')).length/125)*60);
+    });
+
+    // Retrieve the route params so we can get the user and then the illustration
+    this.route.params.subscribe(params => {
+      // Retrieve the user information from Auth0
+      this.auth.user$.subscribe((user) => {
+        // Once we have the user, we can grab the illustration from the DB
+        this.userId = user.sub;
+        this.http.get<Illustration>('/api/illustrations/'+params['id'], {responseType: 'json', observe: 'response'})
+        .pipe(
+          map((data: any) => {
+            let illustration = {
+              ...data.body,
+              canManage: data.headers.get('Administer-Illustrations') === 'true'
+            };
+            return illustration;
+          })
+        )
+        .subscribe((illustration) => {
+          // Once we have the illustration, populate the data management BehaviorSubject
+          this.illustration$.next(illustration);
+          // Keep track of this illustration's ID
+          this.illustrationId = illustration._id;
+        }, (caught) => {
+          this._snackBar.open(caught.error.info, "Got it", {
+            duration: 5000,
+          });
+        }, () => {
+          // Stop displaying the loading veil no matter what
+          this.isLoading$.next(false);
+        });
+      });
+    });
+  }
+
   deleteIllustration(): void {
     // Display loading veil
     this.isLoading$.next(true);
@@ -110,7 +159,6 @@ export class IllustrationComponent implements OnInit {
   }
 
   featureThis(): void {
-    console.log('FEATURED!');
     // Display loading veil
     this.isLoading$.next(true);
 
@@ -143,55 +191,6 @@ export class IllustrationComponent implements OnInit {
   updateReadingTime() {
     // Is this the right place to do this? Will it be too time intensive with a large illustration?
     this.readTime = Math.ceil(((this.illustrationForm.value.body.split(' ')).length/125)*60);
-  }
-
-  ngOnInit(): void {
-    this.illustrationForm = this.formBuilder.group({
-      title: ['', Validators.required],
-      body: ['', Validators.required]
-    });
-
-    // Display loading veil
-    this.isLoading$.next(true);
-
-    // Anytime the current illustration changes, patch the form to match
-    this.illustration$.subscribe((newValue) => {
-      this.illustrationForm.patchValue(newValue);
-      // A quick calculation using an average reading time of 125 WPM
-      this.readTime = Math.ceil(((this.illustrationForm.value.body.split(' ')).length/125)*60);
-    });
-
-    // Retrieve the route params so we can get the user and then the illustration
-    this.route.params.subscribe(params => {
-      // Retrieve the user information from Auth0
-      this.auth.user$.subscribe((user) => {
-        // Once we have the user, we can grab the illustration from the DB
-        this.userId = user.sub;
-        this.http.get<Illustration>('/api/illustrations/'+params['id'], {responseType: 'json', observe: 'response'})
-        .pipe(
-          map((data: any) => {
-            let illustration = {
-              ...data.body,
-              canManage: data.headers.get('Administer-Illustrations') === 'true'
-            };
-            return illustration;
-          })
-        )
-        .subscribe((illustration) => {
-          // Once we have the illustration, populate the data management BehaviorSubject
-          this.illustration$.next(illustration);
-          // Keep track of this illustration's ID
-          this.illustrationId = illustration._id;
-        }, (caught) => {
-          this._snackBar.open(caught.error.info, "Got it", {
-            duration: 5000,
-          });
-        }, () => {
-          // Stop displaying the loading veil no matter what
-          this.isLoading$.next(false);
-        });
-      });
-    });
   }
 }
 
